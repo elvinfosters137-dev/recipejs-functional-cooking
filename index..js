@@ -10,13 +10,13 @@ let currentSort = "NAME";
 
 const filterRecipes = (recipes, filter) => {
   switch (filter) {
-    case "EASY":
+    case "easy":
       return recipes.filter(r => r.difficulty === "Easy");
-    case "MEDIUM":
+    case "Medium":
       return recipes.filter(r => r.difficulty === "Medium");
-    case "HARD":
+    case "hard":
       return recipes.filter(r => r.difficulty === "Hard");
-    case "QUICK":
+    case "Quick":
       return recipes.filter(r => r.time < 30);
     default:
       return recipes;
