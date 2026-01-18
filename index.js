@@ -1,55 +1,48 @@
-const recipes = [
-  {
-    name: "Aloo",
-    category: "Breakfast",
-    time: 15,
-    ingredients: ["Flour", "Eggs", "Milk", "Sugar"],
-    steps: [
-      "Mix dry ingredients",
-      "Add wet ingredients",
-      {
-        step: "Cook on skillet",
-        substeps: [
-          "Heat skillet",
+const RecipeApp = (function () {
+  // Private data
+  let recipes = [
+    {
+      name: "Pancakes",
+      category: "Breakfast",
+      time: 15,
+      ingredients: ["Flour", "Milk", "Eggs"],
+      steps: [
+        "Mix ingredients",
+        [
+          "Heat pan",
           "Pour batter",
-          "Flip pancakes when bubbles form"
-        ]
-      },
-      "Serve with syrup"
-    ]
-  },
-  {
-    name: "allo tikki",
-    category: "Lunch",
-    time: 10,
-    ingredients: ["Bread", "Lettuce", "Tomato", "Cheese"],
-    steps: [
-      "Take two slices of bread",
-      "Add fillings",
-      "Close sandwich"
-    ]
-  }
-];
+          ["Flip pancake", "Cook other side"]
+        ],
+        "Serve hot"
+      ]
+    },
+    {
+      name: "Sandwich",
+      category: "Lunch",
+      time: 10,
+      ingredients: ["Bread", "Cheese", "Vegetables"],
+      steps: [
+        "Chop vegetables",
+        "Assemble sandwich",
+        "Serve"
+      ]
+    }
+  ];
 
-const RecipeApp = (function() {
-  // Private variables
-  let recipeData = recipes; // can replace with fetch later if needed
-  const recipeContainer = document.getElementById("recipe-container");
+  let currentRecipes = [...recipes];
+  const container = document.getElementById("recipeContainer");
 
-  // Private function: Recursive rendering of steps
+  // Recursive function for steps
   function renderSteps(steps) {
     const ul = document.createElement("ul");
 
-    steps.forEach(item => {
+    steps.forEach(step => {
       const li = document.createElement("li");
 
-      if (typeof item === "string") {
-        li.textContent = item;
-      } else if (typeof item === "object") {
-        li.textContent = item.step;
-        if (item.substeps) {
-          li.appendChild(renderSteps(item.substeps)); // recursion
-        }
+      if (Array.isArray(step)) {
+        li.appendChild(renderSteps(step)); // recursion
+      } else {
+        li.textContent = step;
       }
 
       ul.appendChild(li);
@@ -58,60 +51,95 @@ const RecipeApp = (function() {
     return ul;
   }
 
-  // Private function: Create a recipe card
-  function createRecipeCard(recipes) {
-    const card = document.createElement("div");
-    card.classList.add("recipe-card");
+  // Render recipes
+  function renderRecipes(list) {
+    container.innerHTML = "";
 
-    card.innerHTML = `
-      <h3>${recipe.name}</h3>
-      <p>Category: ${recipes.category}</p>
-      <p>Time: ${recipes.time} minutes</p>
-      <button class="show-steps-btn">Show Steps</button>
-      <button class="show-ingredients-btn">Show Ingredients</button>
-      <div class="steps" style="display:none;"></div>
-      <div class="ingredients" style="display:none;"></div>
-    `;
+    list.forEach((recipe, index) => {
+      const card = document.createElement("div");
+      card.className = "recipe-card";
 
-    recipeContainer.appendChild(card);
+      card.innerHTML = `
+        <h3>${recipe.name}</h3>
+        <p>Category: ${recipe.category}</p>
+        <p>Time: ${recipe.time} mins</p>
 
-    const stepsDiv = card.querySelector(".steps");
-    const ingredientsDiv = card.querySelector(".ingredients");
+        <button data-action="steps" data-index="${index}">Show Steps</button>
+        <button data-action="ingredients" data-index="${index}">Show Ingredients</button>
 
-    // Render steps
-    stepsDiv.appendChild(renderSteps(recipe.steps));
+        <div class="steps hidden"></div>
+        <div class="ingredients hidden">
+          <ul>${recipe.ingredients.map(i => `<li>${i}</li>`).join("")}</ul>
+        </div>
+      `;
 
-    // Render ingredients
-    ingredientsDiv.innerHTML = `<ul>${recipe.ingredients.map(i => `<li>${i}</li>`).join("")}</ul>`;
-  }
-
-  // Private function: Render all recipes
-  function renderRecipes(recipes) {
-    recipeContainer.innerHTML = "";
-    recipes.forEach(createRecipeCard);
-  }
-
-  // Event delegation for buttons
-  function handleClicks(e) {
-    const card = e.target.closest(".recipe-card");
-    if (!card) return;
-
-    if (e.target.classList.contains("show-steps-btn")) {
       const stepsDiv = card.querySelector(".steps");
-      stepsDiv.style.display = stepsDiv.style.display === "none" ? "block" : "none";
-    }
+      stepsDiv.appendChild(renderSteps(recipe.steps));
 
-    if (e.target.classList.contains("show-ingredients-btn")) {
-      const ingredientsDiv = card.querySelector(".ingredients");
-      ingredientsDiv.style.display = ingredientsDiv.style.display === "none" ? "block" : "none";
-    }
+      container.appendChild(card);
+    });
   }
 
-  // Public method: initialize app
+  // Event delegation
+  function handleClick(e) {
+    const action = e.target.dataset.action;
+    const index = e.target.dataset.index;
+
+    if (!action) return;
+
+    const card = e.target.closest(".recipe-card");
+    const section = card.querySelector(`.${action}`);
+
+    section.classList.toggle("hidden");
+    e.target.textContent =
+      section.classList.contains("hidden")
+        ? `Show ${action}`
+        : `Hide ${action}`;
+  }
+
+  // Filters
+  function filterRecipes(category) {
+    currentRecipes =
+      category === "All"
+        ? [...recipes]
+        : recipes.filter(r => r.category === category);
+
+    renderRecipes(currentRecipes);
+  }
+
+  // Sorting
+  function sortByName() {
+    currentRecipes.sort((a, b) => a.name.localeCompare(b.name));
+    renderRecipes(currentRecipes);
+  }
+
+  function sortByTime() {
+    currentRecipes.sort((a, b) => a.time - b.time);
+    renderRecipes(currentRecipes);
+  }
+
+  // Init
   function init() {
-    renderRecipes(recipeData);
-    recipeContainer.addEventListener("click", handleClicks);
+    renderRecipes(currentRecipes);
+
+    document.body.addEventListener("click", handleClick);
+
+    document.querySelectorAll("[data-filter]").forEach(btn =>
+      btn.addEventListener("click", () =>
+        filterRecipes(btn.dataset.filter)
+      )
+    );
+
+    document.getElementById("sortName").addEventListener("click", sortByName);
+    document.getElementById("sortTime").addEventListener("click", sortByTime);
   }
 
-  return { init };
+  // Public API
+  return {
+    init
+  };
 })();
+
+RecipeApp.init();
+
+
