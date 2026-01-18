@@ -98,7 +98,7 @@ const recipes = [
     ]
   },
   {
-    name: "Sandwich",
+    name: "allo tikki",
     category: "Lunch",
     time: 10,
     ingredients: ["Bread", "Lettuce", "Tomato", "Cheese"],
