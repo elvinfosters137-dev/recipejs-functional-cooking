@@ -138,14 +138,14 @@ const RecipeApp = (function() {
   }
 
   // Private function: Create a recipe card
-  function createRecipeCard(recipe) {
+  function createRecipeCard(recipes) {
     const card = document.createElement("div");
     card.classList.add("recipe-card");
 
     card.innerHTML = `
       <h3>${recipe.name}</h3>
-      <p>Category: ${recipe.category}</p>
-      <p>Time: ${recipe.time} minutes</p>
+      <p>Category: ${recipes.category}</p>
+      <p>Time: ${recipes.time} minutes</p>
       <button class="show-steps-btn">Show Steps</button>
       <button class="show-ingredients-btn">Show Ingredients</button>
       <div class="steps" style="display:none;"></div>
